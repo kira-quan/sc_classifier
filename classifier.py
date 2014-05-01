@@ -9,15 +9,22 @@ from nltk.classify import accuracy
 from nltk.corpus import stopwords
 import sys
 import json
+import re
 
-twitter_stopwords = ['u', 'ur', '<user', '<url>']
+twitter_stopwords = ['u', 'ur', '<user>', '<url>', '<user>_d', '\"the', 'r']
 english_stopwords = stopwords.words('english')
 
 
 def word_features(text):
 	# Create a feature set
 	words = text.split()
-	return dict([(word.lower(), True) for word in words if word.lower() not in english_stopwords or word.lower() not in twitter_stopwords])
+	word_dict = {}
+	for word in words:
+		lower_word = word.lower()
+		if (lower_word not in english_stopwords) and (lower_word not in twitter_stopwords):
+			new_word = lower_word.replace(',', '').replace('.', '')
+			word_dict[new_word] = True
+	return word_dict
 
 def run_classifier(training_filename, input_filename, output_filename):
 	# Create output file
@@ -29,6 +36,7 @@ def run_classifier(training_filename, input_filename, output_filename):
 
 	with open(training_filename, 'r') as infile:
 		for line in infile:
+			print line
 			tweet_json = json.loads(line)
 			training_data.append((word_features(tweet_json['text']), tweet_json['sentiment']))
 
